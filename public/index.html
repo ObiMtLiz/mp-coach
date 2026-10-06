@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Middle Path Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EEF1EE;
+    --surface: #F7F9F7;
+    --ink: #1F2A33;
+    --muted: #5E6B70;
+    --line: #C9D1CC;
+    --pine: #2F6F68;
+    --pine-ink: #FFFFFF;
+    --client: #DCE5E0;
+    --warn-bg: #F3EBD3;
+    --warn-ink: #5A4A16;
+    --err-bg: #F4DEDB;
+    --err-ink: #6E2A22;
+    --serif: "Newsreader", Georgia, serif;
+    --sans: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #172026; --surface: #1E2930; --ink: #E3E8E5; --muted: #9AA8A6; --line: #34434A;
+      --pine: #7FB3AA; --pine-ink: #10201D; --client: #263840;
+      --warn-bg: #3A3420; --warn-ink: #EAD9A0; --err-bg: #43262A; --err-ink: #F2C4BD;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #172026; --surface: #1E2930; --ink: #E3E8E5; --muted: #9AA8A6; --line: #34434A;
+    --pine: #7FB3AA; --pine-ink: #10201D; --client: #263840;
+    --warn-bg: #3A3420; --warn-ink: #EAD9A0; --err-bg: #43262A; --err-ink: #F2C4BD;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; }
+  button, textarea, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--pine); outline-offset: 2px; }
+
+  header { border-bottom: 1px solid var(--line); background: var(--paper); }
+  .bar { max-width: 760px; margin: 0 auto; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+  .brand { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; letter-spacing: 0.005em; margin-right: auto; }
+  .ghost { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 0.875rem; }
+  .ghost:hover { border-color: var(--muted); }
+  .ghost[hidden] { display: none; }
+
+  .notice { max-width: 760px; margin: 12px auto 0; padding: 10px 14px; border-radius: 6px; font-size: 0.9rem; width: calc(100% - 32px); }
+  .notice.warn { background: var(--warn-bg); color: var(--warn-ink); }
+  .notice.err { background: var(--err-bg); color: var(--err-ink); }
+
+  main { flex: 1; overflow-y: auto; }
+  .col { max-width: 760px; margin: 0 auto; padding: 24px 16px 32px; }
+
+  /* the conversation: the coach writes like a letter; the client's words sit in a tinted block */
+  .coach { font-family: var(--serif); font-size: 1.15rem; line-height: 1.65; margin: 0 0 28px; max-width: 66ch; }
+  .coach p { margin: 0 0 0.8em; }
+  .coach p:last-child { margin-bottom: 0; }
+  .coach ul, .coach ol { margin: 0 0 0.8em; padding-left: 1.3em; }
+  .client { margin: 0 0 28px auto; max-width: 85%; width: fit-content; background: var(--client); border-radius: 10px 10px 2px 10px; padding: 12px 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .copy { display: block; margin-top: 6px; background: none; border: 0; padding: 0; color: var(--muted); font-family: var(--sans); font-size: 0.8rem; cursor: pointer; }
+  .copy:hover { color: var(--ink); text-decoration: underline; }
+  .thinking { color: var(--muted); font-family: var(--serif); font-style: italic; font-size: 1.05rem; margin-bottom: 28px; }
+  .thinking::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: dots 1.4s steps(4) infinite; }
+  @keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+  @media (prefers-reduced-motion: reduce) { .thinking::after { animation: none; content: "..."; } }
+
+  /* start of a session */
+  .start h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.9rem, 5vw, 2.6rem); line-height: 1.15; margin: 8px 0 12px; max-width: 20ch; }
+  .start .lede { color: var(--muted); max-width: 56ch; margin: 0 0 28px; }
+  details { border-top: 1px solid var(--line); padding: 14px 0; }
+  details:last-of-type { border-bottom: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 500; }
+  summary span { color: var(--muted); font-weight: 400; }
+  details textarea { width: 100%; min-height: 140px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); resize: vertical; }
+  .hint { color: var(--muted); font-size: 0.875rem; margin: 8px 0 0; }
+  .file-row { display: flex; gap: 12px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .attached { font-size: 0.9rem; }
+
+  footer { border-top: 1px solid var(--line); background: var(--paper); }
+  .composer { max-width: 760px; margin: 0 auto; padding: 12px 16px 16px; display: flex; gap: 10px; align-items: flex-end; }
+  .composer textarea { flex: 1; min-height: 52px; max-height: 40vh; resize: none; padding: 13px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); line-height: 1.45; }
+  .composer textarea:disabled { opacity: 0.6; }
+  .send { background: var(--pine); color: var(--pine-ink); border: 0; border-radius: 8px; padding: 0 20px; height: 52px; font-weight: 600; cursor: pointer; }
+  .send:disabled { opacity: 0.45; cursor: default; }
+  .sub { max-width: 760px; margin: 0 auto; padding: 0 16px 12px; display: flex; gap: 16px; font-size: 0.8rem; color: var(--muted); }
+  .sub button { background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; font-size: 0.8rem; }
+  .sub button:hover { color: var(--ink); text-decoration: underline; }
+  .sub .spacer { margin-left: auto; }
+
+  .gate { max-width: 560px; margin: 12vh auto; padding: 0 16px; }
+  .gate h1 { font-family: var(--serif); font-weight: 400; font-size: 2rem; margin: 0 0 12px; }
+  .gate p { color: var(--muted); }
+
+  @media (max-width: 560px) {
+    .coach { font-size: 1.08rem; }
+    .client { max-width: 92%; }
+    .bar { gap: 8px; }
+    .ghost { padding: 6px 9px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">Middle Path Coach</div>
+    <button class="ghost" id="downloadBtn" hidden>Download conversation</button>
+    <button class="ghost" id="newBtn" hidden>New session</button>
+  </div>
+</header>
+<div id="notices"></div>
+<main id="main"><div class="col" id="col"></div></main>
+<footer id="footer" hidden>
+  <div class="composer">
+    <textarea id="input" rows="1" placeholder="Write to your coach" aria-label="Your message"></textarea>
+    <button class="send" id="sendBtn">Send</button>
+  </div>
+  <div class="sub">
+    <button id="wrapBtn" hidden>Wrap up this session</button>
+    <span class="spacer">Your conversation stays in this browser. Download it to keep it.</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const col = $("col"), main = $("main"), input = $("input"), sendBtn = $("sendBtn");
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  // ---- token from the personal link ----
+  let token = null;
+  const params = new URLSearchParams(location.search);
+  if (params.get("k")) {
+    token = params.get("k");
+    store.set("mp_token", token);
+    history.replaceState(null, "", location.pathname);
+  } else {
+    token = store.get("mp_token");
+  }
+
+  let session = store.get("mp_session"); // {id, messages:[{role,content}], summary}
+  let report = null;                      // {name, mediaType, data}, kept in memory and (if it fits) in storage
+  let busy = false, locked = false, firstName = "";
+
+  function newId() {
+    const a = new Uint8Array(12); crypto.getRandomValues(a);
+    return Array.from(a, b => b.toString(16).padStart(2, "0")).join("");
+  }
+  function save() {
+    store.set("mp_session", session);
+    if (report && !store.set("mp_report", report)) { /* too big for storage: kept for this visit only */ }
+  }
+
+  // ---- notices ----
+  function notice(kind, text) {
+    const n = $("notices");
+    n.innerHTML = "";
+    if (!text) return;
+    const d = document.createElement("div");
+    d.className = "notice " + kind; d.textContent = text;
+    n.appendChild(d);
+  }
+  function showUsage(fraction, warn) {
+    if (fraction >= 1) {
+      locked = true; input.disabled = true; sendBtn.disabled = true;
+      notice("err", "You've reached this year's coaching allowance, so this was the last reply for now. Download the conversation if you want to keep it, and contact your coach to extend your allowance.");
+    } else if (warn) {
+      notice("warn", `You've used about ${Math.round(fraction * 100)}% of this year's coaching allowance. When it runs out, the coach pauses until your coach extends it.`);
+    }
+  }
+
+  // ---- rendering ----
+  function esc(s) { return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function inline(s) {
+    return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, "$1<em>$2</em>");
+  }
+  function renderCoach(text) {
+    const blocks = text.replace(/\r/g, "").split(/\n{2,}/);
+    return blocks.map(b => {
+      const lines = b.split("\n");
+      if (lines.every(l => /^\s*[-*•]\s+/.test(l))) return "<ul>" + lines.map(l => "<li>" + inline(l.replace(/^\s*[-*•]\s+/, "")) + "</li>").join("") + "</ul>";
+      if (lines.every(l => /^\s*\d+[.)]\s+/.test(l))) return "<ol>" + lines.map(l => "<li>" + inline(l.replace(/^\s*\d+[.)]\s+/, "")) + "</li>").join("") + "</ol>";
+      return "<p>" + lines.map(inline).join("<br>") + "</p>";
+    }).join("");
+  }
+  function addMessage(m, scroll = true) {
+    const d = document.createElement("div");
+    if (m.role === "assistant") {
+      d.className = "coach";
+      d.innerHTML = renderCoach(m.content);
+      const c = document.createElement("button");
+      c.className = "copy"; c.textContent = "Copy";
+      c.onclick = () => navigator.clipboard.writeText(m.content).then(() => { c.textContent = "Copied"; setTimeout(() => c.textContent = "Copy", 1500); });
+      d.appendChild(c);
+    } else {
+      d.className = "client"; d.textContent = m.content;
+    }
+    col.appendChild(d);
+    if (scroll) d.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function showGate(title, text) {
+    $("footer").hidden = true;
+    main.innerHTML = `<div class="gate"><h1>${esc(title)}</h1><p>${esc(text)}</p></div>`;
+  }
+
+  function showStart(firstSession) {
+    col.innerHTML = "";
+    $("newBtn").hidden = true; $("downloadBtn").hidden = true; $("wrapBtn").hidden = true;
+    const s = document.createElement("section");
+    s.className = "start";
+    const hello = firstName ? (firstSession ? `Welcome, ${esc(firstName)}.` : `Welcome back, ${esc(firstName)}.`) : "Welcome.";
+    s.innerHTML = `
+      <h1>${hello}</h1>
+      <p class="lede">This is a place to think something through between sessions with your coach. Start with whatever is on your mind; it doesn't need to be tidy.</p>
+      <details id="sumBox"><summary>Bring a summary from an earlier session <span>(optional)</span></summary>
+        <textarea id="summaryIn" placeholder="Paste the summary the coach gave you at the end of an earlier session"></textarea>
+      </details>
+      <details id="repBox"><summary>Attach your MP Mirror report <span>(optional)</span></summary>
+        <div class="file-row">
+          <input type="file" id="fileIn" accept="application/pdf,.pdf,.txt,.md,text/plain">
+          <span class="attached" id="attached"></span>
+        </div>
+        <p class="hint">PDF or text, up to about 3 MB. It stays with this session and isn't stored by the app.</p>
+      </details>`;
+    col.appendChild(s);
+    const sumIn = $("summaryIn");
+    sumIn.value = (session && session.summary) || "";
+    sumIn.oninput = () => { session.summary = sumIn.value; save(); };
+    if (report) $("attached").textContent = "Attached: " + report.name;
+    $("fileIn").onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 3_000_000) { notice("err", "That file is larger than about 3 MB. Try a smaller PDF or a text version."); e.target.value = ""; return; }
+      const isPdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+      const data = isPdf
+        ? await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.onerror = no; r.readAsDataURL(f); })
+        : await f.text();
+      report = { name: f.name, mediaType: isPdf ? "application/pdf" : "text/plain", data };
+      save();
+      $("attached").textContent = "Attached: " + f.name;
+      notice("", "");
+    };
+    $("footer").hidden = false;
+    input.placeholder = "What's on your mind?";
+    input.focus();
+  }
+
+  function startFresh() {
+    session = { id: newId(), messages: [], summary: "" };
+    report = null; store.del("mp_report"); save();
+  }
+
+  function renderSession() {
+    col.innerHTML = "";
+    session.messages.forEach(m => addMessage(m, false));
+    $("newBtn").hidden = false; $("downloadBtn").hidden = false;
+    $("wrapBtn").hidden = session.messages.length < 4;
+    $("footer").hidden = false;
+    input.placeholder = "Write to your coach";
+    main.scrollTop = main.scrollHeight;
+  }
+
+  // ---- sending ----
+  function setBusy(b) {
+    busy = b;
+    sendBtn.disabled = b || locked;
+    input.disabled = locked;
+  }
+  async function send(text) {
+    text = text.trim();
+    if (!text || busy || locked) return;
+    const starting = session.messages.length === 0;
+    if (starting) col.innerHTML = "";
+    session.messages.push({ role: "user", content: text });
+    save();
+    addMessage({ role: "user", content: text });
+    input.value = ""; autosize();
+    if (starting) { $("newBtn").hidden = false; $("downloadBtn").hidden = false; input.placeholder = "Write to your coach"; }
+    const t = document.createElement("div");
+    t.className = "thinking"; t.textContent = "Your coach is thinking";
+    col.appendChild(t);
+    setBusy(true);
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, sessionId: session.id, messages: session.messages, summary: session.summary || null, report }),
+      });
+      const j = await r.json().catch(() => ({ error: "The coach sent back something unreadable. Please try again." }));
+      t.remove();
+      if (!r.ok) {
+        // take the unanswered message back out so it can be resent
+        session.messages.pop(); save();
+        col.lastChild && col.lastChild.classList.contains("client") && col.lastChild.remove();
+        input.value = text; autosize();
+        if (r.status === 402 || r.status === 403 || r.status === 401) { locked = true; }
+        notice("err", j.error || "Something went wrong. Please try again.");
+        if (session.messages.length === 0) showStart(false);
+        return;
+      }
+      session.messages.push({ role: "assistant", content: j.reply });
+      save();
+      addMessage({ role: "assistant", content: j.reply });
+      $("wrapBtn").hidden = session.messages.length < 4;
+      notice("", "");
+      showUsage(j.fraction, j.warn);
+    } catch (e) {
+      t.remove();
+      session.messages.pop(); save();
+      col.lastChild && col.lastChild.classList.contains("client") && col.lastChild.remove();
+      input.value = text; autosize();
+      notice("err", "Couldn't reach the coach. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+      if (!locked) input.focus();
+    }
+  }
+
+  function autosize() { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, window.innerHeight * 0.4) + "px"; }
+  input.addEventListener("input", autosize);
+  const touch = matchMedia("(pointer: coarse)").matches;
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey && !touch && !e.isComposing) { e.preventDefault(); send(input.value); }
+  });
+  sendBtn.onclick = () => send(input.value);
+  $("wrapBtn").onclick = () => send("I'd like to wrap up for today.");
+
+  $("newBtn").onclick = () => {
+    if (session.messages.length && !confirm("Start a new session? This conversation will be cleared from this browser. Download it first if you want to keep it.")) return;
+    startFresh(); notice("", ""); showStart(false);
+  };
+  $("downloadBtn").onclick = () => {
+    const date = new Date().toISOString().slice(0, 10);
+    const lines = [`Middle Path Coach, conversation of ${date}`, ""];
+    for (const m of session.messages) lines.push((m.role === "user" ? "Me" : "Coach") + ":\n" + m.content, "");
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = `middle-path-coach-${date}.txt`;
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  // ---- boot ----
+  (async () => {
+    if (!token) return showGate("Middle Path Coach", "Please open the coach using the personal link your coach sent you.");
+    let st;
+    try {
+      const r = await fetch("/api/status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
+      st = await r.json();
+      if (!r.ok || !st.ok) {
+        if (r.status === 401) store.del("mp_token");
+        return showGate("Middle Path Coach", st.error || "The coach isn't available right now.");
+      }
+    } catch { return showGate("Middle Path Coach", "Couldn't reach the coach. Check your connection and reload the page."); }
+    firstName = st.firstName || "";
+    if (!session || !session.id) startFresh();
+    report = store.get("mp_report") || null;
+    if (session.messages.length) renderSession(); else showStart(st.firstSession);
+    showUsage(st.fraction, st.warn);
+  })();
+})();
+</script>
+</body>
+</html>

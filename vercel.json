@@ -1,0 +1,14 @@
+{
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "functions": {
+    "api/chat.js": { "maxDuration": 60, "includeFiles": "prompt/**" }
+  },
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+      { "key": "Referrer-Policy", "value": "no-referrer" },
+      { "key": "X-Frame-Options", "value": "DENY" }
+    ] }
+  ]
+}

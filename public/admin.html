@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Coach Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#EEF1EE; --surface:#F7F9F7; --ink:#1F2A33; --muted:#5E6B70; --line:#C9D1CC; --pine:#2F6F68; --pine-ink:#fff; --amber:#8A6A10; --red:#9A3326;
+    --serif:"Newsreader",Georgia,serif; --sans:"Instrument Sans",system-ui,sans-serif; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#172026; --surface:#1E2930; --ink:#E3E8E5; --muted:#9AA8A6; --line:#34434A; --pine:#7FB3AA; --pine-ink:#10201D; --amber:#E2C063; --red:#F09A8C; } }
+  :root[data-theme="dark"] { --paper:#172026; --surface:#1E2930; --ink:#E3E8E5; --muted:#9AA8A6; --line:#34434A; --pine:#7FB3AA; --pine-ink:#10201D; --amber:#E2C063; --red:#F09A8C; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.45; }
+  button, input, select { font:inherit; color:inherit; }
+  :focus-visible { outline:2px solid var(--pine); outline-offset:2px; }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-family:var(--serif); font-weight:500; font-size:1.8rem; margin:0 0 4px; }
+  h2 { font-family:var(--serif); font-weight:500; font-size:1.3rem; margin:36px 0 12px; }
+  .muted { color:var(--muted); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  label { display:flex; flex-direction:column; gap:4px; font-size:0.85rem; color:var(--muted); }
+  input, select { background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:7px 9px; color:var(--ink); min-width:0; }
+  .btn { background:var(--pine); color:var(--pine-ink); border:0; border-radius:6px; padding:8px 14px; font-weight:600; cursor:pointer; }
+  .link { background:none; border:0; padding:0; color:var(--pine); cursor:pointer; text-decoration:underline; font-size:0.85rem; }
+  .link.danger { color:var(--red); }
+  .scroll { overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+  table { border-collapse:collapse; width:100%; min-width:820px; }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; font-size:0.9rem; }
+  th { font-weight:600; color:var(--muted); font-size:0.8rem; }
+  tr:last-child td { border-bottom:0; }
+  .num { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .meter { height:6px; background:var(--line); border-radius:3px; margin-top:4px; width:90px; overflow:hidden; }
+  .meter i { display:block; height:100%; background:var(--pine); }
+  .meter.hi i { background:var(--amber); } .meter.full i { background:var(--red); }
+  .paused { color:var(--red); font-weight:500; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; }
+  .edit td { background:var(--paper); }
+  #msg { position:sticky; top:0; z-index:5; }
+  #msg div { margin:0 0 12px; padding:10px 14px; border-radius:6px; background:var(--surface); border:1px solid var(--line); word-break:break-all; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .stats { display:flex; gap:28px; flex-wrap:wrap; margin-top:12px; }
+  .stats div span { display:block; color:var(--muted); font-size:0.8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Coach admin</h1>
+  <p class="muted">Add clients and teams, send each client their personal link, and watch usage against each allowance.</p>
+  <div id="msg"></div>
+
+  <div id="login" class="card" style="max-width:420px">
+    <form id="loginForm" class="row">
+      <label style="flex:1">Admin password<input type="password" id="pw" autocomplete="current-password" required></label>
+      <button class="btn">Sign in</button>
+    </form>
+  </div>
+
+  <div id="app" hidden>
+    <div class="stats" id="stats"></div>
+
+    <h2>Add a client</h2>
+    <form id="addClient" class="row card">
+      <label>Name<input name="name" required></label>
+      <label>Email (optional)<input name="email" type="email"></label>
+      <label>Team<select name="teamId" id="teamSelect"><option value="">Individual license</option></select></label>
+      <label>Allowance ($/year)<input name="cap" type="number" min="0" step="1" style="width:110px"></label>
+      <label>License ends<input name="periodEnd" type="date"></label>
+      <button class="btn">Add client</button>
+    </form>
+    <p class="muted" style="font-size:0.85rem">For team members, leave the allowance at 0 to draw only from the team pool, or set a personal limit inside the pool. The license end date comes from the team.</p>
+
+    <h2>Clients</h2>
+    <div class="scroll"><table id="clients"></table></div>
+
+    <h2>Add a team</h2>
+    <form id="addTeam" class="row card">
+      <label>Team name<input name="name" required></label>
+      <label>Team pool ($/year)<input name="cap" type="number" min="0" step="1" style="width:120px"></label>
+      <label>License ends<input name="periodEnd" type="date"></label>
+      <button class="btn">Add team</button>
+    </form>
+
+    <h2>Teams</h2>
+    <div class="scroll"><table id="teams"></table></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let pw = sessionStorage.getItem("mp_admin") || "";
+  let data = null;
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const $$ = v => "$" + Number(v || 0).toFixed(2);
+  const pct = (s, c) => Number(c) > 0 ? Number(s || 0) / Number(c) : 0;
+  function meter(f) { const cls = f >= 1 ? "full" : f >= 0.8 ? "hi" : ""; return `<div class="meter ${cls}"><i style="width:${Math.min(100, f * 100)}%"></i></div>`; }
+  function msg(text) { $("msg").innerHTML = text ? `<div>${text}</div>` : ""; if (text) window.scrollTo({ top: 0 }); }
+
+  async function api(action, extra = {}) {
+    const r = await fetch("/api/admin", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-password": pw }, body: JSON.stringify({ action, ...extra }) });
+    const j = await r.json().catch(() => ({ error: "Unreadable response" }));
+    if (r.status === 401) { sessionStorage.removeItem("mp_admin"); $("app").hidden = true; $("login").hidden = false; }
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    return j;
+  }
+
+  async function load() {
+    data = await api("list");
+    $("login").hidden = true; $("app").hidden = false;
+    const s = data.settings;
+    $("stats").innerHTML = `
+      <div><span>Model</span>${esc(s.model)}</div>
+      <div><span>App spend this month</span>${$$(s.globalSpentThisMonth)} of ${$$(s.globalMonthlyCap)} limit</div>
+      <div><span>Per-client daily limit</span>${$$(s.dailyCap)}</div>
+      <div><span>Clients</span>${data.clients.length}</div>`;
+    const f = $("addClient"); if (!f.cap.value) f.cap.value = s.defaultIndividualCap; if (!f.periodEnd.value) f.periodEnd.value = s.oneYearFromToday;
+    const t = $("addTeam"); if (!t.cap.value) t.cap.value = s.defaultTeamCap; if (!t.periodEnd.value) t.periodEnd.value = s.oneYearFromToday;
+    $("teamSelect").innerHTML = `<option value="">Individual license</option>` + data.teams.map(tm => `<option value="${esc(tm.id)}">${esc(tm.name)}</option>`).join("");
+    renderClients(); renderTeams();
+  }
+
+  function teamName(id) { const t = data.teams.find(x => x.id === id); return t ? t.name : ""; }
+
+  function renderClients() {
+    const rows = data.clients.map(c => {
+      const team = c.teamId ? data.teams.find(x => x.id === c.teamId) : null;
+      const capLabel = team ? (Number(c.cap) > 0 ? `${$$(c.cap)} (in team pool)` : "team pool") : $$(c.cap);
+      const f = team ? pct(team.spent, team.cap) : pct(c.spent, c.cap);
+      const own = !team || Number(c.cap) > 0 ? pct(c.spent, c.cap) : 0;
+      const shown = Math.max(f, own);
+      const end = team ? team.periodEnd : c.periodEnd;
+      return `<tr data-t="${esc(c.token)}">
+        <td><strong>${esc(c.name)}</strong>${c.active === "0" ? ' <span class="paused">paused</span>' : ""}<br><span class="muted">${esc(c.email || "")}</span></td>
+        <td>${esc(team ? team.name : "Individual")}</td>
+        <td class="num">${$$(c.spent)} used<br><span class="muted">${capLabel}</span>${meter(shown)}</td>
+        <td class="num">${esc(c.sessions || 0)}</td>
+        <td class="num">${c.lastUsed ? esc(c.lastUsed.slice(0, 10)) : "never"}</td>
+        <td class="num">${esc(end || "")}</td>
+        <td><div class="actions">
+          <button class="link" data-a="copy">Copy link</button>
+          <button class="link" data-a="edit">Edit</button>
+          <button class="link" data-a="toggle">${c.active === "0" ? "Resume" : "Pause"}</button>
+          <button class="link" data-a="reset">Reset usage</button>
+          <button class="link" data-a="newlink">New link</button>
+          <button class="link danger" data-a="delete">Delete</button>
+        </div></td></tr>`;
+    }).join("");
+    $("clients").innerHTML = `<thead><tr><th>Client</th><th>License</th><th>Usage this year</th><th>Sessions</th><th>Last used</th><th>License ends</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="7" class="muted">No clients yet. Add one above.</td></tr>`}</tbody>`;
+  }
+
+  function renderTeams() {
+    const rows = data.teams.map(t => {
+      const members = data.clients.filter(c => c.teamId === t.id);
+      const f = pct(t.spent, t.cap);
+      return `<tr data-id="${esc(t.id)}">
+        <td><strong>${esc(t.name)}</strong>${t.active === "0" ? ' <span class="paused">paused</span>' : ""}</td>
+        <td class="num">${$$(t.spent)} of ${$$(t.cap)}${meter(f)}</td>
+        <td>${members.length ? members.map(m => esc(m.name) + ` <span class="muted">${$$(m.spent)}</span>`).join("<br>") : '<span class="muted">No members yet</span>'}</td>
+        <td class="num">${esc(t.periodEnd || "")}</td>
+        <td><div class="actions">
+          <button class="link" data-a="tedit">Edit</button>
+          <button class="link" data-a="ttoggle">${t.active === "0" ? "Resume" : "Pause"}</button>
+          <button class="link" data-a="treset">Reset usage</button>
+        </div></td></tr>`;
+    }).join("");
+    $("teams").innerHTML = `<thead><tr><th>Team</th><th>Pool used</th><th>Members</th><th>License ends</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="muted">No teams yet.</td></tr>`}</tbody>`;
+  }
+
+  function editRow(tr, html, onSave) {
+    const next = tr.nextElementSibling;
+    if (next && next.classList.contains("edit")) { next.remove(); return; }
+    const er = document.createElement("tr"); er.className = "edit";
+    er.innerHTML = `<td colspan="7"><form class="row">${html}<button class="btn">Save</button><button type="button" class="link">Cancel</button></form></td>`;
+    tr.after(er);
+    const form = er.querySelector("form");
+    form.querySelector(".link").onclick = () => er.remove();
+    form.onsubmit = async e => { e.preventDefault(); try { await onSave(form); msg("Saved."); await load(); } catch (x) { msg("Couldn't save: " + esc(x.message)); } };
+  }
+
+  $("clients").addEventListener("click", async e => {
+    const a = e.target.dataset.a; if (!a) return;
+    const tr = e.target.closest("tr"); const token = tr.dataset.t;
+    const c = data.clients.find(x => x.token === token);
+    try {
+      if (a === "copy") { await navigator.clipboard.writeText(c.link); msg(`Link for ${esc(c.name)} copied.`); return; }
+      if (a === "edit") {
+        const teamOpts = `<option value="">Individual license</option>` + data.teams.map(t => `<option value="${esc(t.id)}" ${t.id === c.teamId ? "selected" : ""}>${esc(t.name)}</option>`).join("");
+        return editRow(tr, `
+          <label>Name<input name="name" value="${esc(c.name)}"></label>
+          <label>Email<input name="email" value="${esc(c.email || "")}"></label>
+          <label>Team<select name="teamId">${teamOpts}</select></label>
+          <label>Allowance ($/year)<input name="cap" type="number" min="0" step="1" value="${esc(Number(c.cap || 0))}" style="width:110px"></label>
+          <label>License ends<input name="periodEnd" type="date" value="${esc(c.periodEnd || "")}"></label>`,
+          f => api("updateClient", { token, fields: { name: f.name.value, email: f.email.value, teamId: f.teamId.value, cap: f.cap.value, periodEnd: f.periodEnd.value } }));
+      }
+      if (a === "toggle") await api("updateClient", { token, fields: { active: c.active === "0" } });
+      if (a === "reset") { if (!confirm(`Reset ${c.name}'s usage to $0? Use this when a license renews.`)) return; await api("updateClient", { token, fields: { resetSpent: true } }); }
+      if (a === "newlink") {
+        if (!confirm(`Give ${c.name} a new link? The old link stops working immediately.`)) return;
+        const r = await api("newLink", { token }); await load();
+        msg(`New link for ${esc(c.name)}: ${esc(r.link)}`); return;
+      }
+      if (a === "delete") { if (!confirm(`Delete ${c.name}? Their link stops working and their usage history is removed.`)) return; await api("deleteClient", { token }); }
+      await load(); msg("Done.");
+    } catch (x) { msg("Error: " + esc(x.message)); }
+  });
+
+  $("teams").addEventListener("click", async e => {
+    const a = e.target.dataset.a; if (!a) return;
+    const tr = e.target.closest("tr"); const id = tr.dataset.id;
+    const t = data.teams.find(x => x.id === id);
+    try {
+      if (a === "tedit") return editRow(tr, `
+          <label>Team name<input name="name" value="${esc(t.name)}"></label>
+          <label>Team pool ($/year)<input name="cap" type="number" min="0" step="1" value="${esc(Number(t.cap || 0))}" style="width:120px"></label>
+          <label>License ends<input name="periodEnd" type="date" value="${esc(t.periodEnd || "")}"></label>`,
+          f => api("updateTeam", { id, fields: { name: f.name.value, cap: f.cap.value, periodEnd: f.periodEnd.value } }));
+      if (a === "ttoggle") await api("updateTeam", { id, fields: { active: t.active === "0" } });
+      if (a === "treset") { if (!confirm(`Reset ${t.name}'s pool usage to $0? Members' own totals are kept.`)) return; await api("updateTeam", { id, fields: { resetSpent: true } }); }
+      await load(); msg("Done.");
+    } catch (x) { msg("Error: " + esc(x.message)); }
+  });
+
+  $("addClient").onsubmit = async e => {
+    e.preventDefault(); const f = e.target;
+    try {
+      const r = await api("createClient", { name: f.name.value, email: f.email.value, teamId: f.teamId.value, cap: f.cap.value, periodEnd: f.periodEnd.value });
+      const name = f.name.value; f.name.value = ""; f.email.value = "";
+      await load();
+      msg(`Added ${esc(name)}. Their personal link: ${esc(r.link)}`);
+    } catch (x) { msg("Couldn't add client: " + esc(x.message)); }
+  };
+  $("teamSelect").onchange = e => { $("addClient").cap.value = e.target.value ? 0 : data.settings.defaultIndividualCap; };
+  $("addTeam").onsubmit = async e => {
+    e.preventDefault(); const f = e.target;
+    try { await api("createTeam", { name: f.name.value, cap: f.cap.value, periodEnd: f.periodEnd.value }); f.name.value = ""; await load(); msg("Team added."); }
+    catch (x) { msg("Couldn't add team: " + esc(x.message)); }
+  };
+  $("loginForm").onsubmit = async e => {
+    e.preventDefault(); pw = $("pw").value;
+    try { await load(); sessionStorage.setItem("mp_admin", pw); msg(""); } catch (x) { msg(esc(x.message)); }
+  };
+  if (pw) load().catch(x => msg(esc(x.message)));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "mp-coach",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Middle Path Coach: private coaching companion for Middle Path clients",
+  "engines": { "node": ">=20" },
+  "scripts": { "dev": "node scripts/dev-server.js" }
+}
