@@ -1,6 +1,6 @@
 // All the settings you might want to change live here or in Vercel environment variables.
 
-export const MODEL = process.env.MODEL || "claude-opus-5-5";
+export const MODEL = process.env.MODEL || "claude-sonnet-5-5";
 export const MAX_OUTPUT_TOKENS = Number(process.env.MAX_OUTPUT_TOKENS || 4000);
 
 // Price per million tokens (input, output), used to count each client's spend.

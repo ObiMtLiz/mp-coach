@@ -22,7 +22,7 @@ Required:
 - `KV_REST_API_URL` and `KV_REST_API_TOKEN`: added automatically when you connect Upstash Redis
 
 Optional (defaults shown):
-- `MODEL` = claude-opus-5-5. If you switch to a model the app doesn't know, also set `PRICE_INPUT_PER_MTOK` and `PRICE_OUTPUT_PER_MTOK`.
+- `MODEL` = claude-sonnet-5-5. If you switch to a model the app doesn't know, also set `PRICE_INPUT_PER_MTOK` and `PRICE_OUTPUT_PER_MTOK`.
 - `DAILY_CAP_PER_CLIENT` = 5. Dollars per client per day; a safety net if a link is forwarded.
 - `GLOBAL_MONTHLY_CAP` = 300. Dollars per month for the whole app.
 - `WARN_AT` = 0.8
