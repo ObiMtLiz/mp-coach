@@ -49,6 +49,13 @@ function appNote({ first, summary, hasReport }) {
   return `[App note: ${note}]`;
 }
 
+const CONFIRM_NUDGE = "[App note: Your last reply opened with a confirm. Unless this message carries a feeling, meaning, value, or shift you haven't reflected yet, skip the confirm this time: a few words of acknowledgment at most, then your question.]";
+
+function openedWithConfirm(text) {
+  const paras = String(text || "").trim().split(/\n\s*\n/).filter(p => p.trim());
+  return paras.length >= 2 && !paras[0].trim().endsWith("?");
+}
+
 function buildMessages(messages, note, report) {
   const out = messages.map(m => ({ role: m.role, content: [{ type: "text", text: m.content }] }));
   const firstBlocks = [{ type: "text", text: note }];
@@ -60,6 +67,12 @@ function buildMessages(messages, note, report) {
     firstBlocks.push(doc);
   }
   out[0].content = [...firstBlocks, ...out[0].content];
+  // Prompt rules alone didn't stop the coach confirming at the top of every turn, so nudge per turn:
+  // if the coach's previous reply opened with a confirm, ask it to skip one this time unless there's new feeling or meaning.
+  const prev = messages.length >= 3 ? messages[messages.length - 2].content : "";
+  if (openedWithConfirm(prev)) {
+    out[out.length - 1].content.push({ type: "text", text: CONFIRM_NUDGE });
+  }
   // cache the conversation so far, so each turn only pays full price for what's new
   const last = out[out.length - 1].content;
   last[last.length - 1].cache_control = { type: "ephemeral" };

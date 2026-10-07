@@ -63,7 +63,7 @@
   .coach p:last-child { margin-bottom: 0; }
   .coach ul, .coach ol { margin: 0 0 0.8em; padding-left: 1.3em; }
   .client { margin: 0 0 28px auto; max-width: 85%; width: fit-content; background: var(--client); border-radius: 10px 10px 2px 10px; padding: 12px 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .copy { display: block; margin-top: 6px; background: none; border: 0; padding: 0; color: var(--muted); font-family: var(--sans); font-size: 0.8rem; cursor: pointer; }
+  .copy { user-select: none; -webkit-user-select: none; display: block; margin-top: 6px; background: none; border: 0; padding: 0; color: var(--muted); font-family: var(--sans); font-size: 0.8rem; cursor: pointer; }
   .copy:hover { color: var(--ink); text-decoration: underline; }
   .thinking { color: var(--muted); font-family: var(--serif); font-style: italic; font-size: 1.05rem; margin-bottom: 28px; }
   .thinking::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: dots 1.4s steps(4) infinite; }
@@ -89,7 +89,7 @@
   .send { background: var(--pine); color: var(--pine-ink); border: 0; border-radius: 8px; padding: 0 20px; height: 52px; font-weight: 600; cursor: pointer; }
   .send:disabled { opacity: 0.45; cursor: default; }
   .sub { max-width: 760px; margin: 0 auto; padding: 0 16px 12px; display: flex; gap: 16px; font-size: 0.8rem; color: var(--muted); }
-  .sub button { background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; font-size: 0.8rem; }
+  .sub button { text-decoration: underline; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; font-size: 0.8rem; }
   .sub button:hover { color: var(--ink); text-decoration: underline; }
   .sub .spacer { margin-left: auto; }
 
@@ -122,7 +122,7 @@
   </div>
   <div class="sub">
     <button id="wrapBtn" hidden>Wrap up this session</button>
-    <span class="spacer">Your conversation stays in this browser. Download it to keep it.</span>
+    <span class="spacer">This conversation is saved only in this browser. <button id="dlLink">Download a copy</button> to keep it.</span>
   </div>
 </footer>
 
@@ -337,6 +337,7 @@
     if (session.messages.length && !confirm("Start a new session? This conversation will be cleared from this browser. Download it first if you want to keep it.")) return;
     startFresh(); notice("", ""); showStart(false);
   };
+  $("dlLink").onclick = () => $("downloadBtn").click();
   $("downloadBtn").onclick = () => {
     const date = new Date().toISOString().slice(0, 10);
     const lines = [`Middle Path Coach, conversation of ${date}`, ""];
